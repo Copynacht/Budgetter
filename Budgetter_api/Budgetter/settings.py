@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-bzw^=@ru(+6906b%z121fbs&i4^9+!r4cj@^1=jbzi3z-%u%#c
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", env("HOSTNAME")]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    "drf_spectacular",
     'api',
 ]
 
@@ -57,6 +58,8 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
@@ -138,3 +141,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+if DEBUG:
+    # django-debug-toolbar
+    # https://django-debug-toolbar.readthedocs.io/en/latest/index.html
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': lambda request: True}
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+    ALLOWED_HOSTS = [env("HOSTNAME")]
