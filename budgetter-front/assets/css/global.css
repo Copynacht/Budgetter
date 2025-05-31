@@ -1,0 +1,15 @@
+/* iOS Safariの青いタッチハイライトを消す */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* テキスト選択無効化 */
+* {
+  outline: none;
+  user-select: none;
+}
+
+/* オーバースクロール無効化 */
+html, body, #app, #__nuxt {
+  overscroll-behavior: none;
+}

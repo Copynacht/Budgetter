@@ -1,0 +1,72 @@
+services:
+  budgetter-db:
+    image: mysql:9.3.0
+    container_name: budgetter-mysql-db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    volumes:
+      - budgetter_mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command: --performance_schema=OFF
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u${MYSQL_USER} -p${MYSQL_PASSWORD}
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 60s
+
+  budgetter-api:
+    container_name: budgetter-api
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./docker/budgetter-api/Dockerfile
+    volumes:
+      - /vol/www/static/budgetter:/vol/www/static
+      - ./docker/budgetter-api/apache.conf:/etc/apache2/sites-available/000-default.conf:ro
+    depends_on:
+      budgetter-db:
+        condition: service_healthy
+    environment:
+      - DEBUG=False
+      - SQLITE=False
+      - MYSQL_HOST=budgetter-db
+      - MYSQL_PORT=3306
+    env_file:
+      - .env
+      - .env.budgetter-api
+
+  budgetter-front:
+    container_name: budgetter-front
+    build:
+      context: .
+      dockerfile: ./docker/budgetter-front/Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE_URL: ${NUXT_PUBLIC_API_BASE_URL}
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - budgetter_nuxt_dist:/vol/www/nuxt
+
+  budgetter-nginx:
+    image: nginx:1.27.5
+    restart: unless-stopped
+    container_name: budgetter-nginx
+    ports:
+      - "8082:80"
+    volumes:
+      - /vol/www/static/budgetter:/vol/www/static
+      - budgetter_nuxt_dist:/vol/www/nuxt
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - budgetter-api
+      - budgetter-front
+
+volumes:
+  budgetter_mysql_data:
+  budgetter_nuxt_dist:
