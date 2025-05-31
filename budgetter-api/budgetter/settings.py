@@ -33,6 +33,9 @@ DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = ["*"]
 
+CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGIN").split(",")
+CSRF_TRUSTED_ORIGINS = env("CORS_ALLOWED_ORIGIN").split(",")
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    "drf_spectacular",
+    'drf_spectacular',
     'corsheaders',
     'api',
 ]
@@ -132,7 +135,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_ROOT = env("STATIC_ROOT", default="/static")
+STATIC_URL = env("STATIC_URL", default="/static/")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -141,17 +145,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 
-STATIC_ROOT = env("STATIC_ROOT", default="/static")
-    
-if DEBUG:
-    # django-debug-toolbar
-    # https://django-debug-toolbar.readthedocs.io/en/latest/index.html
-    INSTALLED_APPS += ['debug_toolbar']
-    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
-    DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': lambda request: True}
-    
-    CORS_ALLOWED_ORIGINS = ['http://localhost:3000',]
-    CSRF_TRUSTED_ORIGINS = ['http://localhost:3000',]
+SQLITE = env.bool("SQLITE", default=False)
+
+if SQLITE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -160,8 +156,6 @@ if DEBUG:
     }
 
 else:
-    CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGIN").split(",")
-    CSRF_TRUSTED_ORIGINS = env("CORS_ALLOWED_ORIGIN").split(",")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -172,3 +166,10 @@ else:
             'PORT': env("MYSQL_PORT", default="3306"),
         }
     }
+
+if DEBUG:
+    # django-debug-toolbar
+    # https://django-debug-toolbar.readthedocs.io/en/latest/index.html
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': lambda request: True}
