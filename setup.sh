@@ -9,3 +9,6 @@ echo "✅ docker/.env.example → .env"
 
 cp "$SCRIPT_DIR/docker/budgetter-api/.env.example" "$SCRIPT_DIR/.env.budgetter-api"
 echo "✅ docker/budgetter-api/.env.example → .env.budgetter-api"
+
+cp "$SCRIPT_DIR/docker/budgetter-front/.env.example" "$SCRIPT_DIR/.env.budgetter-front"
+echo "✅ docker/budgetter-front/.env.example → .env.budgetter-front"

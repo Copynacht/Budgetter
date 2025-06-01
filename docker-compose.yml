@@ -37,8 +37,6 @@ services:
       - SQLITE=False
       - MYSQL_HOST=budgetter-db
       - MYSQL_PORT=3306
-      - STATIC_ROOT=/vol/www/static
-      - STATIC_URL=/static/
     env_file:
       - .env
       - .env.budgetter-api
@@ -50,9 +48,10 @@ services:
       dockerfile: ./docker/budgetter-front/Dockerfile
     environment:
       - NODE_ENV=production
-      - API_BASE_URL=http://budgetter-api
     volumes:
       - budgetter_nuxt_dist:/vol/www/nuxt
+    env_file:
+      - .env.budgetter-front
 
   budgetter-nginx:
     image: nginx:1.27.5
