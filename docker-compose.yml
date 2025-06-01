@@ -2,7 +2,7 @@ services:
   budgetter-db:
     image: mysql:9.3.0
     container_name: budgetter-mysql-db
-    restart: always
+    restart: unless-stopped
     ports:
       - "3307:3306"
     volumes:
@@ -22,7 +22,7 @@ services:
 
   budgetter-api:
     container_name: budgetter-api
-    restart: always
+    restart: unless-stopped
     build:
       context: .
       dockerfile: ./docker/budgetter-api/Dockerfile
@@ -56,6 +56,7 @@ services:
 
   budgetter-nginx:
     image: nginx:1.27.5
+    restart: unless-stopped
     container_name: budgetter-nginx
     ports:
       - "8082:80"
