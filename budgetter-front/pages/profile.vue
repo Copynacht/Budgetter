@@ -19,13 +19,13 @@
         </v-list>
 
         <!-- パスワード変更ページへ遷移するボタン -->
-        <v-btn
-          class="mt-6"
-          color="primary"
-          block
-          @click="goToPassChange"
-        >
+        <v-btn class="mt-6" color="primary" block @click="goToPassChange">
           パスワード変更
+        </v-btn>
+
+        <!-- 管理者画面へ遷移するボタン -->
+        <v-btn v-if="user.is_staff" class="mt-3" color="secondary" block @click="openAdminPanel">
+          管理画面を開く
         </v-btn>
       </v-card-text>
 
@@ -38,17 +38,17 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRuntimeConfig } from '#imports'
 
 const user = ref(null)
 const router = useRouter()
-
+const config = useRuntimeConfig()
 const { $api } = useNuxtApp()
 
 onMounted(async () => {
   try {
     const res = await $api.get('/api/me')
-    user.value = res.data
+    user.value = res
   } catch (e) {
     console.error('プロフィール情報の取得に失敗しました', e)
     return navigateTo('/login')
@@ -58,7 +58,13 @@ onMounted(async () => {
 const goToPassChange = () => {
   router.push('/passchange')
 }
+
+const openAdminPanel = () => {
+  const adminUrl = `${config.public.apiBase}/admin`
+  window.open(adminUrl, '_blank')
+}
 </script>
+
 
 <style scoped>
 .fill-height {

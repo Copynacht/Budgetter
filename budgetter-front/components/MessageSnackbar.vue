@@ -1,6 +1,6 @@
 <template>
   <v-snackbar v-model="show" :color="color" location="top center" timeout="3000">
-    {{ message }}
+    <span v-html="message" />
     <template #actions>
       <v-btn icon @click="show = false">
         <v-icon icon="mdi-close" />
@@ -16,7 +16,6 @@ const show = ref(false)
 const color = ref('success')
 const message = ref('')
 
-// 普通のスナックバー
 function showSnackbar(type, msg) {
   if (!['success', 'error'].includes(type)) return
   color.value = type
@@ -24,25 +23,44 @@ function showSnackbar(type, msg) {
   show.value = true
 }
 
-// エラー表示特化スナックバー
+function convertFieldName(key) {
+  const map = {
+    name: '[名前]',
+    payment: '[支払い方法]',
+    email: '[メールアドレス]',
+    password: '[パスワード]',
+    price: '[値段]',
+  }
+  return map[key] || key
+}
+
 function showApiErrorMessages(errorResponse) {
   if (!errorResponse || typeof errorResponse !== 'object') {
     showSnackbar('error', '不明なエラーが発生しました。')
     return
   }
 
+  if (errorResponse.detail === 'no refresh token') {
+    showSnackbar('error', 'ログインに失敗しました。<br>メールアドレスやパスワードをお確かめください。')
+    return
+  }
+
   const messages = []
+
   for (const key in errorResponse) {
-    if (Array.isArray(errorResponse[key])) {
-      errorResponse[key].forEach(msg => messages.push(
-        msg.replace("name", "[名前]").replace("payment", "[支払い方法]")
-      ))
-    } else if (typeof errorResponse[key] === 'string') {
-      messages.push(errorResponse[key])
+    const fieldLabel = convertFieldName(key)
+    const value = errorResponse[key]
+
+    if (Array.isArray(value)) {
+      value.forEach(msg => {
+        messages.push(`${fieldLabel}: ${msg}`)
+      })
+    } else if (typeof value === 'string') {
+      messages.push(`${fieldLabel}: ${value}`)
     }
   }
 
-  showSnackbar('error', messages.join('\n'))
+  showSnackbar('error', messages.join('<br>'))
 }
 
 defineExpose({ showSnackbar, showApiErrorMessages })

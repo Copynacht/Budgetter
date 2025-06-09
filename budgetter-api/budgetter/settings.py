@@ -35,9 +35,10 @@ ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGIN").split(",")
 CSRF_TRUSTED_ORIGINS = env("CORS_ALLOWED_ORIGIN").split(",")
+CSRF_COOKIE_HTTPONLY = False 
+CSRF_COOKIE_SAMESITE = 'None'
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,7 +68,7 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "api.authentication.CookieJWTAuthentication",
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -75,7 +76,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 

@@ -77,10 +77,10 @@ const handleChangePassword = async () => {
     })
     snackbarRef.value?.showSnackbar('success', 'パスワードを変更しました')
 
-    router.push('/')
+    router.push('/profile')
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'パスワード変更に失敗しました')
     }

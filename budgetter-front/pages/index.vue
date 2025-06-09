@@ -1,9 +1,10 @@
 <template>
   <v-container>
+    <!-- スナックバー -->
+    <MessageSnackbar ref="snackbarRef" />
+
     <v-progress-linear v-if="loading" indeterminate color="primary" />
     <div v-else>
-      <!-- スナックバー -->
-      <MessageSnackbar ref="snackbarRef" />
       <v-row>
         <v-col cols="6">
           <p class="text-h5 mb-4">{{ slideTitle[slide] }}</p>
@@ -302,9 +303,8 @@ const fetchData = async () => {
       $api.get('/api/categories/'),
       $api.get('/api/payments/')
     ])
-
-    categories.value = resCategories.data
-    payments.value = resPayments.data
+    categories.value = resCategories
+    payments.value = resPayments
   } catch (err) {
     console.error('Failed to fetch data:', err)
   }
@@ -393,8 +393,8 @@ const register = async () => {
     snackbarRef.value?.showSnackbar('success', '登録に成功しました')
     reset()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'レコードの登録に失敗：サーバーエラー')
     }
@@ -423,8 +423,8 @@ const registerLoan = async () => {
     snackbarRef.value?.showSnackbar('success', '登録に成功しました')
     reset()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '貸し借りレコードの登録に失敗：サーバーエラー')
     }

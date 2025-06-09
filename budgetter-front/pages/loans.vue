@@ -1,9 +1,10 @@
 <template>
   <v-container>
+    <!-- スナックバー -->
+    <MessageSnackbar ref="snackbarRef" />
+
     <v-progress-linear v-if="loading" indeterminate color="primary" />
     <div v-else>
-      <MessageSnackbar ref="snackbarRef" />
-
       <!-- 削除確認ダイアログ -->
       <ConfirmDialog ref="confirmDialog" />
 
@@ -136,7 +137,7 @@ async function fetchData() {
       $api.get('/api/loans/'),
     ])
 
-    loans.value = resRecords.data
+    loans.value = resRecords
   } catch (err) {
     console.error('データ取得エラー:', err)
   }
@@ -188,6 +189,7 @@ async function updateRecord() {
     resetEditForm()
   } catch (err) {
     console.error('更新エラー:', err)
+    snackbarRef.value?.showApiErrorMessages(err.data)
   }
 }
 

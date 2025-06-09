@@ -1,9 +1,10 @@
 <template>
   <v-container>
+    <!-- スナックバー -->
+    <MessageSnackbar ref="snackbarRef" />
+
     <v-progress-linear v-if="loading" indeterminate color="primary" />
     <div v-else>
-      <!-- スナックバー -->
-      <MessageSnackbar ref="snackbarRef" />
       <!-- 確認ダイアログ -->
       <ConfirmDialog ref="confirmDialog" />
 
@@ -285,14 +286,14 @@ async function fetchData() {
 
   try {
     const res = await $api.get('/api/categories/')
-    const list = Array.isArray(res.data) ? res.data : res.data.results || []
+    const list = Array.isArray(res) ? res : res.results || []
     categories.value = list.map(p => ({
       ...p,
       category_details: p.details || []
     }))
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリの取得に失敗：サーバーエラー')
     }
@@ -330,7 +331,6 @@ async function addAllCategories() {
       console.error(`カテゴリ「${p.label}」の追加に失敗`, err)
     }
   }
-
   snackbarRef.value?.showSnackbar('success', `${newCategories.length} 件のカテゴリを追加しました`)
 
   await fetchData()
@@ -344,8 +344,8 @@ async function onCategoryOrderChange() {
       )
     )
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリの並び替えに失敗：サーバーエラー')
     }
@@ -375,8 +375,8 @@ async function onCategoryDetailOrderChangeAll() {
       )
     )
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリ詳細の並び替えに失敗：サーバーエラー')
     }
@@ -400,8 +400,8 @@ async function submitNewCategory() {
     snackbarRef.value?.showSnackbar('success', 'カテゴリを追加しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリの追加に失敗：サーバーエラー')
     }
@@ -428,8 +428,8 @@ async function submitEditCategory() {
     }
     snackbarRef.value?.showSnackbar('success', 'カテゴリを編集しました')
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリの編集に失敗：サーバーエラー')
     }
@@ -451,8 +451,8 @@ async function deleteCategory(category) {
     categories.value = categories.value.filter(p => p.id !== category.id)
     snackbarRef.value?.showSnackbar('success', '削除しました')
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリ詳細の追加に失敗：サーバーエラー')
     }
@@ -473,8 +473,8 @@ async function submitNewCategoryDetail() {
     snackbarRef.value?.showSnackbar('success', 'カテゴリ詳細を追加しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリ詳細の追加に失敗：サーバーエラー')
     }
@@ -493,8 +493,8 @@ async function submitEditCategoryDetail() {
     snackbarRef.value?.showSnackbar('success', 'カテゴリ詳細を編集しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリ詳細の編集に失敗：サーバーエラー')
     }
@@ -516,8 +516,8 @@ async function deleteCategoryDetail(categoryDetail) {
     snackbarRef.value?.showSnackbar('success', '削除しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'カテゴリ詳細の追加に失敗：サーバーエラー')
     }

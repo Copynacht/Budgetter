@@ -1,9 +1,11 @@
 <template>
   <v-container>
+    <!-- スナックバー -->
+    <MessageSnackbar ref="snackbarRef" />
+
     <v-progress-linear v-if="loadingAll" indeterminate color="primary" />
     <div v-else>
-      <!-- スナックバー -->
-      <MessageSnackbar ref="snackbarRef" />
+
       <!-- 確認ダイアログ -->
       <ConfirmDialog ref="confirmDialog" />
 
@@ -219,8 +221,8 @@ async function fetchMasterData() {
       $api.get('/api/payments/'),
       $api.get('/api/categories/')
     ])
-    payments.value = resPayments.data
-    categories.value = resCategories.data
+    payments.value = resPayments
+    categories.value = resCategories
   } catch (err) {
     console.error('マスタデータ取得エラー:', err)
   }
@@ -246,9 +248,9 @@ async function fetchRecordData() {
       $api.get('/api/records/sum-by-month/', { params: { ...params, month: 0 } })
     ])
 
-    records.value = resRecords.data
-    monthlyTotalPrice.value = resMonth.data.total_price ?? 0
-    annualTotalPrice.value = resYear.data.total_price ?? 0
+    records.value = resRecords
+    monthlyTotalPrice.value = resMonth.total_price ?? 0
+    annualTotalPrice.value = resYear.total_price ?? 0
   } catch (err) {
     console.error('レコード取得エラー:', err)
   } finally {
@@ -289,8 +291,8 @@ async function updateRecord() {
     await fetchRecordData()
     resetEditForm()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '更新に失敗：サーバーエラー')
     }
@@ -311,8 +313,8 @@ async function deleteRecord() {
     resetEditForm()
     await fetchRecordData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '削除に失敗：サーバーエラー')
     }

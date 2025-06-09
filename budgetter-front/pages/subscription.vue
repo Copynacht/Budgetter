@@ -1,9 +1,10 @@
 <template>
   <v-container>
+    <!-- スナックバー -->
+    <MessageSnackbar ref="snackbarRef" />
+
     <v-progress-linear v-if="loadingAll" indeterminate color="primary" />
     <div v-else>
-      <MessageSnackbar ref="snackbarRef" />
-
       <!-- 削除確認ダイアログ -->
       <ConfirmDialog ref="confirmDialog" />
 
@@ -183,8 +184,8 @@ async function fetchPaymentAndCategory() {
       $api.get('/api/payments/'),
       $api.get('/api/categories/')
     ])
-    payments.value = resPayments.data
-    categories.value = resCategories.data
+    payments.value = resPayments
+    categories.value = resCategories
   } catch (err) {
     console.error('支払い方法・カテゴリの取得失敗:', err)
   }
@@ -197,8 +198,8 @@ async function fetchSubscriptionsAndSum() {
       $api.get('/api/subscriptions/'),
       $api.get('/api/subscriptions/sum-all-prices/')
     ])
-    subscriptions.value = resSubscriptions.data
-    monthlyTotalPrice.value = resSumMonth.data.total_price ?? 0
+    subscriptions.value = resSubscriptions
+    monthlyTotalPrice.value = resSumMonth.total_price ?? 0
   } catch (err) {
     console.error('サブスク・合計金額の取得失敗:', err)
   } finally {
@@ -246,6 +247,7 @@ async function updateRecord() {
     await fetchSubscriptionsAndSum()
     resetEditForm()
   } catch (err) {
+    snackbarRef.value?.showApiErrorMessages(err.data)
     console.error('更新エラー:', err)
   }
 }

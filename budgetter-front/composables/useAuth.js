@@ -1,21 +1,25 @@
 export const useAuth = () => {
-    const login = async (email, password) => {
-        const { $api } = useNuxtApp()
-        const res = await $api.post('/api/token/', {
-            email,
-            password,
-        })
+  const { $api } = useNuxtApp()
+  const router = useRouter()
 
-        useCookie('access_token').value = res.data.access
-        useCookie('refresh_token').value = res.data.refresh
-        await navigateTo('/')
+  const login = async (email, password) => {
+    try {
+      await $api.post('/api/token/', { email, password })
+      await router.push('/')
+    } catch (error) {
+      console.error('ログイン失敗', error)
+      throw error
     }
+  }
 
-    const logout = async () => {
-        useCookie('access_token').value = null
-        useCookie('refresh_token').value = null
-        await navigateTo('/login')
+  const logout = async () => {
+    try {
+      await $api.post('/api/logout/')
+      await router.push('/login')
+    } catch (error) {
+      console.error('ログアウト失敗', error)
     }
+  }
 
-    return { login, logout }
+  return { login, logout }
 }

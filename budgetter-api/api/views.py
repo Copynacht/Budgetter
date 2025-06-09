@@ -1,4 +1,5 @@
 import datetime
+from django.http import JsonResponse
 from django.db.models import Prefetch, Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
@@ -7,6 +8,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.views import APIView
 from .models import Payment, PaymentDetail, Category, CategoryDetail, PaymentRecord, Subscription, LoanRecord
 from .serializers import (
     PaymentSerializer, 
@@ -18,7 +21,63 @@ from .serializers import (
     LoanRecordSerializer
 )
 from .filters import PaymentRecordFilter
+from budgetter import settings
 
+
+class CookieTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        resp = super().post(request, *args, **kwargs)
+        if resp.status_code != 200:
+            return resp
+
+        data = resp.data
+        refresh, access = data["refresh"], data["access"]
+
+        response = JsonResponse({"detail": "login ok"})
+        access_lifetime = settings.SIMPLE_JWT.get('ACCESS_TOKEN_LIFETIME', datetime.timedelta(minutes=5))
+        refresh_lifetime = settings.SIMPLE_JWT.get('REFRESH_TOKEN_LIFETIME',  datetime.timedelta(days=1))
+        access_max_age = int(access_lifetime.total_seconds())
+        refresh_max_age = int(refresh_lifetime.total_seconds())
+
+        response.set_cookie(
+            "access_token", access,
+            max_age=access_max_age, httponly=True,
+            secure=not settings.DEBUG, samesite="Lax"
+        )
+        response.set_cookie(
+            "refresh_token", refresh,
+            max_age=refresh_max_age, httponly=True,
+            secure=not settings.DEBUG, samesite="Lax", path="/api/token/refresh/"
+        )
+        return response
+
+
+class CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get("refresh_token")
+        if not refresh_token:
+            return Response({"detail": "no refresh token"}, status=401)
+
+        serializer = self.get_serializer(data={"refresh": refresh_token})
+        serializer.is_valid(raise_exception=True)
+
+        new_access = serializer.validated_data["access"]
+        response = Response({"detail": "refresh ok"})
+        response.set_cookie(
+            "access_token", new_access,
+            max_age=60 * 5, httponly=True,
+            secure=not settings.DEBUG, samesite="Lax"
+        )
+        return response
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = Response({"detail": "logout"})
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token", path="/api/token/refresh/")
+        return response
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -27,6 +86,7 @@ def get_current_user(request):
     return Response({
         'username': user.username,
         'email': user.email,
+        'is_staff': user.is_staff
     })
 
 class PasswordChangeAPIView(views.APIView):

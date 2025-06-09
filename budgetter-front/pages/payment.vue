@@ -1,10 +1,10 @@
 <template>
   <v-container>
+    <!-- スナックバー -->
+    <MessageSnackbar ref="snackbarRef" />
+
     <v-progress-linear v-if="loading" indeterminate color="primary" />
     <div v-else>
-      <!-- スナックバー -->
-      <MessageSnackbar ref="snackbarRef" />
-
       <!-- 確認ダイアログ -->
       <ConfirmDialog ref="confirmDialog" />
 
@@ -277,20 +277,20 @@ async function fetchData() {
 
   try {
     const res = await $api.get('/api/payments/')
-    const list = Array.isArray(res.data) ? res.data : res.data.results || []
+    const list = Array.isArray(res) ? res : res.results || []
     payments.value = list.map(p => ({
       ...p,
       payment_details: p.details || []
     }))
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い情報の取得に失敗：サーバーエラー')
     }
     console.error('支払い情報の取得に失敗:', err)
   }
-  
+
   loading.value = false
 }
 
@@ -336,8 +336,8 @@ async function onPaymentOrderChange() {
       )
     )
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い方法の並び替えに失敗：サーバーエラー')
     }
@@ -367,8 +367,8 @@ async function onPaymentDetailOrderChangeAll() {
       )
     )
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い詳細の並び替えに失敗：サーバーエラー')
     }
@@ -392,8 +392,8 @@ async function submitNewPayment() {
     snackbarRef.value?.showSnackbar('success', '支払い方法を追加しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い方法の追加に失敗：サーバーエラー')
     }
@@ -420,8 +420,8 @@ async function submitEditPayment() {
     }
     snackbarRef.value?.showSnackbar('success', '支払い方法を編集しました')
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い方法の編集に失敗：サーバーエラー')
     }
@@ -443,8 +443,8 @@ async function deletePayment(payment) {
     payments.value = payments.value.filter(p => p.id !== payment.id)
     snackbarRef.value?.showSnackbar('success', '削除しました')
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い詳細の追加に失敗：サーバーエラー')
     }
@@ -465,8 +465,8 @@ async function submitNewPaymentDetail() {
     snackbarRef.value?.showSnackbar('success', '支払い詳細を追加しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い詳細の追加に失敗：サーバーエラー')
     }
@@ -485,8 +485,8 @@ async function submitEditPaymentDetail() {
     snackbarRef.value?.showSnackbar('success', '支払い詳細を編集しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い詳細の編集に失敗：サーバーエラー')
     }
@@ -508,8 +508,8 @@ async function deletePaymentDetail(paymentDetail) {
     snackbarRef.value?.showSnackbar('success', '削除しました')
     await fetchData()
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', '支払い詳細の追加に失敗：サーバーエラー')
     }

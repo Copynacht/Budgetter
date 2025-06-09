@@ -48,8 +48,8 @@ const handleLogin = async () => {
   try {
     await login(email.value, password.value)
   } catch (err) {
-    if (err.response && err.response.data) {
-      snackbarRef.value?.showApiErrorMessages(err.response.data)
+    if (err.data) {
+      snackbarRef.value?.showApiErrorMessages(err.data)
     } else {
       snackbarRef.value?.showSnackbar('error', 'ログインに失敗：サーバーエラー')
     }
