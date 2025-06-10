@@ -25,7 +25,7 @@
       <v-carousel v-model="slide" height="100%" hide-delimiters :show-arrows="false" :touch="false">
         <v-carousel-item>
           <v-row no-gutters>
-            <v-col v-for="category in activeCategories" :key="category.id" cols="12" md="6" lg="4">
+            <v-col v-for="category in categories" :key="category.id" cols="12" md="6" lg="4">
               <v-card class="ma-2 pa-2 custom-card" outlined @click="moveCategoryDetailSelect(category.id)">
                 <v-card-title>
                   <v-icon :icon="category.icon" class="mr-2" size="32" />
@@ -33,7 +33,7 @@
                 </v-card-title>
               </v-card>
             </v-col>
-            <v-col v-if="activeCategories.length === 0">
+            <v-col v-if="categories.length === 0">
               カテゴリを最低1つ登録してください。<br />
               左のタブの「カテゴリ管理」より追加できます。
             </v-col>
@@ -56,7 +56,7 @@
 
         <v-carousel-item>
           <v-row no-gutters>
-            <v-col v-for="payment in activePayments" :key="payment.id" cols="12" md="6" lg="4">
+            <v-col v-for="payment in payments" :key="payment.id" cols="12" md="6" lg="4">
               <v-card class="ma-2 pa-2 custom-card" outlined @click="movePaymentDetailSelect(payment.id)">
                 <v-card-title>
                   <v-icon :icon="payment.icon" class="mr-2" size="32" />
@@ -64,7 +64,7 @@
                 </v-card-title>
               </v-card>
             </v-col>
-            <v-col v-if="activePayments.length === 0">
+            <v-col v-if="payments.length === 0">
               支払い方法を最低1つ登録してください。<br />
               左のタブの「支払方法管理」より追加できます。
             </v-col>
@@ -158,7 +158,7 @@
 
                   <v-row justify="center">
                     <v-col cols="auto">
-                      <v-btn color="primary" @click="register" :disabled="!formValid">
+                      <v-btn color="primary" @click="register" :disabled="!formValid || isPosting">
                         登録
                       </v-btn>
                     </v-col>
@@ -218,7 +218,7 @@
 
                   <v-row justify="center">
                     <v-col cols="auto">
-                      <v-btn color="primary" @click="registerLoan" :disabled="!formValid">
+                      <v-btn color="primary" @click="registerLoan" :disabled="!formValid || isPosting">
                         登録
                       </v-btn>
                     </v-col>
@@ -244,24 +244,27 @@ const snackbarRef = ref()
 const loading = ref(false)
 
 const payments = ref([])
-const paymentDetails = ref([])
 const categories = ref([])
-const categoryDetails = ref([])
+
+const cSelected = ref(-1)
+const cdSelected = ref(-1)
+const activeCategoryDetails = computed(() => {
+  const selectedCategory = categories.value.find(c => c.id === cSelected.value)
+  const details = selectedCategory?.details || []
+  return [{ id: -1, name: '指定しない' }, ...details]
+})
+const selectedCategory = computed(() => categories.value.find(c => c.id === cSelected.value))
+const selectedCategoryDetail = computed(() => activeCategoryDetails.value.find(cd => cd.id === cdSelected.value))
+
 
 const pSelected = ref(-1)
 const pdSelected = ref(-1)
-const cSelected = ref(-1)
-const cdSelected = ref(-1)
-
-const activePayments = computed(() => payments.value)
-const activePaymentDetails = computed(() => paymentDetails.value)
-const activeCategories = computed(() => categories.value)
-const activeCategoryDetails = computed(() => categoryDetails.value)
-
-const selectedPayment = computed(() => activePayments.value.find(p => p.id === pSelected.value))
+const activePaymentDetails = computed(() => {
+  const selectedPayment = payments.value.find(p => p.id === pSelected.value)
+  return selectedPayment?.details || []
+})
+const selectedPayment = computed(() => payments.value.find(p => p.id === pSelected.value))
 const selectedPaymentDetail = computed(() => activePaymentDetails.value.find(pd => pd.id === pdSelected.value))
-const selectedCategory = computed(() => activeCategories.value.find(c => c.id === cSelected.value))
-const selectedCategoryDetail = computed(() => activeCategoryDetails.value.find(cd => cd.id === cdSelected.value))
 
 const slide = ref(0)
 const slideTitle = [
@@ -274,6 +277,8 @@ const slideTitle = [
 ]
 
 const isSubscription = ref(false)
+const isPosting = ref(false)
+
 const loanType = ref(0)
 const loanPartner = ref("")
 const inputPrice = ref("")
@@ -313,11 +318,9 @@ const fetchData = async () => {
 
 const moveCategoryDetailSelect = (id) => {
   cSelected.value = id
-  const details = categories.value.find(category => category.id === id).details
-  if (details.length === 0) {
+  if (activeCategoryDetails.value.length <= 1) {
     slide.value += 2
   } else {
-    categoryDetails.value = [{ id: -1, name: '指定しない' }, ...details]
     slide.value += 1
   }
 }
@@ -329,8 +332,7 @@ const movePaymentSelect = (id) => {
 
 const movePaymentDetailSelect = (id) => {
   pSelected.value = id
-  paymentDetails.value = payments.value.find(payment => payment.id === id).details
-  if (paymentDetails.value.length === 0) {
+  if (activePaymentDetails.value.length === 0) {
     slide.value += 2
   } else {
     slide.value += 1
@@ -364,6 +366,7 @@ const register = async () => {
   const isValid = await formRef.value?.validate()
   if (!isValid) return;
 
+  isPosting.value = true
   try {
     let payload = {}
     let formattedDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
@@ -399,6 +402,8 @@ const register = async () => {
       snackbarRef.value?.showSnackbar('error', 'レコードの登録に失敗：サーバーエラー')
     }
     console.error('レコードの登録に失敗:', err)
+  } finally {
+    isPosting.value = false
   }
 }
 
@@ -406,6 +411,7 @@ const registerLoan = async () => {
   const isValid = await formRef.value?.validate()
   if (!isValid) return;
 
+  isPosting.value = true
   try {
     let payload = {}
     let formattedDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
@@ -429,13 +435,15 @@ const registerLoan = async () => {
       snackbarRef.value?.showSnackbar('error', '貸し借りレコードの登録に失敗：サーバーエラー')
     }
     console.error('貸し借りレコードの登録に失敗:', err)
+  } finally {
+    isPosting.value = false
   }
 }
 
 const back = () => {
-  if (slide.value === 2 && categoryDetails.value.length === 0) {
+  if (slide.value === 2 && activeCategoryDetails.value.length <= 1) {
     slide.value -= 2
-  } else if (slide.value === 4 && paymentDetails.value.length === 0) {
+  } else if (slide.value === 4 && activePaymentDetails.value.length === 0) {
     slide.value -= 2
   } else {
     slide.value -= 1
