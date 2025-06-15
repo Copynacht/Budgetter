@@ -221,6 +221,7 @@ const iconOptions = [
   { label: '旅行', value: 'mdi-airplane' },
   { label: '仕事', value: 'mdi-domain' },
   { label: '医療・健康', value: 'mdi-hospital-box-outline' },
+  { label: '美容', value: 'mdi-lotion-outline' },
   { label: '家賃・水道光熱費・通信費', value: 'mdi-home-account' },
   { label: '育児・子ども', value: 'mdi-human-male-child' },
   { label: 'PC・スマホ', value: 'mdi-laptop' },
